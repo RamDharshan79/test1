@@ -1,70 +1,406 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Notes Summarizer — Simple & Cool</title>
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#94a3b8;--glass: rgba(255,255,255,0.03)}
-    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#081226 0%, #071225 100%);color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100vh}
-    .card{width:900px;max-width:95%;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
-    h1{margin:0 0 8px 0;font-size:20px}
-    p.lead{margin:0 0 18px 0;color:var(--muted)}
-    .cols{display:grid;grid-template-columns:1fr 420px;gap:18px}
-    textarea{width:100%;height:330px;padding:12px;border-radius:10px;background:var(--card);border:1px solid rgba(255,255,255,0.03);color:inherit;font-size:14px;resize:vertical}
-    .controls{display:flex;gap:8px;margin-top:10px;align-items:center}
-    button{background:var(--accent);border:0;padding:10px 14px;border-radius:10px;color:white;cursor:pointer;font-weight:600}
-    select,input[type=range]{background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:inherit;padding:8px;border-radius:8px}
-    .summary{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));padding:12px;border-radius:10px;height:330px;overflow:auto;border:1px solid rgba(255,255,255,0.03)}
-    .meta{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    .small{font-size:13px;color:var(--muted)}
-    .copy{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;cursor:pointer}
-    footer{margin-top:14px;color:var(--muted);font-size:12px}
-    .hint{color:var(--muted);font-size:13px;margin-top:8px}
+    :root {
+      --bg-primary: #0f1724;
+      --bg-secondary: #0b1220;
+      --accent: #7c3aed;
+      --accent-hover: #6d28d9;
+      --text-primary: #e6eef8;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.06);
+      --glass: rgba(255, 255, 255, 0.03);
+      --shadow: rgba(2, 6, 23, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(180deg, #081226 0%, #071225 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 60px var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      margin: 0 0 12px 0;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e6eef8 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .lead {
+      margin: 0 0 28px 0;
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 968px) {
+      .cols {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--glass);
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    textarea {
+      width: 100%;
+      height: 320px;
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    select {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    select:hover {
+      border-color: var(--accent);
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    button {
+      background: var(--accent);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--glass);
+      border-color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .summary {
+      background: var(--bg-secondary);
+      padding: 16px;
+      border-radius: 12px;
+      height: 320px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+
+    .summary:empty::before {
+      content: 'Your summary will appear here...';
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    .keywords-section {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--glass);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .keywords-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .keywords {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .keyword-tag {
+      background: var(--accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .hint {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--glass);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
   </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>AI Notes Summarizer (Simple + Cool)</h1>
-    <p class="lead">Paste lecture notes, articles, or long text on the left. Click <strong>Summarize</strong> to get a clean summary on the right.</p>
+  <div class="container">
+    <div class="card">
+      <h1>✨ AI Notes Summarizer</h1>
+      <p class="lead">Paste your lecture notes, articles, or any long text below. Click <strong>Summarize</strong> to
+        get a clean, concise summary instantly.</p>
 
-    <div class="cols">
-      <div>
-        <div class="meta"><div class="small">Input text</div><div style="flex:1"></div><div class="small">Sentences: <span id="sentCount">0</span></div></div>
-        <textarea id="input" placeholder="Paste your notes here..."></textarea>
+      <div class="cols">
+        <!-- Input Section -->
+        <div>
+          <div class="section-header">
+            <span class="section-title">Input Text</span>
+            <span class="badge">Sentences: <span id="sentCount">0</span></span>
+          </div>
 
-        <div class="controls">
-          <label class="small">Summary length</label>
-          <select id="length">
-            <option value="short">Short (3 sentences)</option>
-            <option value="medium" selected>Medium (5 sentences)</option>
-            <option value="long">Long (8 sentences)</option>
-          </select>
+          <textarea id="input"
+            placeholder="Paste your notes, articles, or any text here...&#10;&#10;Try pasting a long article or lecture notes to see the magic happen!"
+            aria-label="Input text area"></textarea>
 
-          <label class="small">Method</label>
-          <select id="method">
-            <option value="extractive" selected>Extractive (fast, offline)</option>
-            <option value="llm">LLM-backed (requires server)</option>
-          </select>
+          <div class="controls">
+            <div class="control-group">
+              <label for="length">Summary Length</label>
+              <select id="length">
+                <option value="short">Short (3 sentences)</option>
+                <option value="medium" selected>Medium (5 sentences)</option>
+                <option value="long">Long (8 sentences)</option>
+              </select>
+            </div>
 
-          <button id="summarize">Summarize</button>
-          <button id="clear" style="background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit">Clear</button>
+            <div class="control-group">
+              <label for="method">Method</label>
+              <select id="method">
+                <option value="extractive" selected>Extractive (Fast)</option>
+                <option value="llm">LLM-backed (Server)</option>
+              </select>
+            </div>
+
+            <div class="control-group" style="margin-top: auto;">
+              <label style="opacity: 0;">Actions</label>
+              <div style="display: flex; gap: 8px;">
+                <button id="summarize">
+                  <span id="btnText">Summarize</span>
+                </button>
+                <button id="paste" class="btn-secondary">Paste</button>
+                <button id="clear" class="btn-secondary">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hint">
+            💡 <strong>Tip:</strong> The extractive method works offline and is super fast. For more advanced summaries,
+            you can set up an LLM server.
+          </div>
         </div>
 
-        <div class="hint">Tip: You can expand this with an LLM server for stronger summaries.</div>
-      </div>
+        <!-- Output Section -->
+        <div>
+          <div class="section-header">
+            <span class="section-title">Summary</span>
+            <button id="copy" class="btn-secondary btn-small">📋 Copy</button>
+          </div>
 
-      <div>
-        <div class="meta"><div class="small">Summary</div><div style="flex:1"></div><div><button class="copy" id="copy">Copy</button></div></div>
-        <div id="summary" class="summary small">Your summary will appear here.</div>
+          <div id="summary" class="summary" aria-live="polite"></div>
 
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
-          <div class="small">Keywords:</div>
-          <div id="keywords" class="small" style="color:#cbd5e1"></div>
+          <div class="keywords-section">
+            <span class="keywords-label">Keywords</span>
+            <div id="keywords" class="keywords"></div>
+          </div>
         </div>
-
-        <footer>Made for Cursor + Kiro.</footer>
       </div>
+
+      <footer>
+        Made with ❤️ for Cursor + Kiro
+      </footer>
     </div>
   </div>
 
@@ -79,95 +415,338 @@
     const copyBtn = document.getElementById('copy');
     const clearBtn = document.getElementById('clear');
 
-    function splitSentences(text){
-      const s = text.replace(/\n+/g, ' ').trim();
-      if(!s) return [];
-      return s.match(/[^.!?]+[.!?]?/g) || [s];
+    // Stop words to filter out
+    const STOP_WORDS = new Set([
+      'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he',
+      'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with',
+      'this', 'but', 'they', 'have', 'had', 'what', 'when', 'where', 'who', 'which',
+      'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other',
+      'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too',
+      'very', 'can', 'just', 'should', 'now'
+    ]);
+
+    function splitSentences(text) {
+      // Robust sentence splitting that works even with minimal punctuation
+      const trimmed = text.trim();
+      if (!trimmed) return [];
+
+      // Primary split on sentence boundaries, keeping punctuation
+      let sentences = trimmed.match(/[^.!?]+[.!?]+/g);
+
+      if (!sentences || sentences.length === 0) {
+        // Fallback 1: split by newlines
+        const byLines = trimmed.split(/\n+/).map(t => t.trim()).filter(Boolean);
+        if (byLines.length > 1) {
+          sentences = byLines;
+        } else {
+          // Fallback 2: split by commas/semicolons to create smaller chunks
+          const byPunct = trimmed.split(/[;,]+/).map(t => t.trim()).filter(Boolean);
+          if (byPunct.length > 1) {
+            sentences = byPunct.map(s => s.endsWith('.') ? s : s + '.');
+          } else {
+            // Fallback 3: chunk by words (approx 25 words per chunk)
+            const words = trimmed.split(/\s+/);
+            const chunkSize = 25;
+            const chunks = [];
+            for (let i = 0; i < words.length; i += chunkSize) {
+              chunks.push(words.slice(i, i + chunkSize).join(' ') + '.');
+            }
+            sentences = chunks;
+          }
+        }
+      }
+
+      return sentences.map(s => s.trim()).filter(s => s.length > 10);
     }
 
-    function tokenize(text){
-      return text.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean);
+    function tokenize(text) {
+      return text.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !STOP_WORDS.has(word));
     }
 
-    function scoreSentences(sentences){
-      const freq = {};
-      sentences.forEach(s=>{
-        tokenize(s).forEach(t=> freq[t] = (freq[t]||0)+1);
+    function calculateTFIDF(sentences) {
+      const docCount = sentences.length;
+      const termDocFreq = {}; // How many sentences contain each term
+      const termFreq = []; // Term frequency per sentence
+      const tokensPerSentence = sentences.map(sent => tokenize(sent));
+
+      // Calculate term frequencies and document frequencies
+      tokensPerSentence.forEach((tokens, idx) => {
+        const tf = {};
+        const uniqueTerms = new Set();
+
+        tokens.forEach(token => {
+          tf[token] = (tf[token] || 0) + 1;
+          uniqueTerms.add(token);
+        });
+
+        uniqueTerms.forEach(term => {
+          termDocFreq[term] = (termDocFreq[term] || 0) + 1;
+        });
+
+        termFreq[idx] = tf;
       });
 
-      return sentences.map(s=>{
-        return tokenize(s).reduce((sum,t)=> sum+(freq[t]||0),0);
+      // Calculate TF-IDF scores for each sentence
+      return tokensPerSentence.map((tokens, idx) => {
+        if (tokens.length === 0) return 0;
+
+        let score = 0;
+        tokens.forEach(token => {
+          const tf = termFreq[idx][token] || 0;
+          const idf = Math.log(docCount / (termDocFreq[token] || 1));
+          score += tf * idf;
+        });
+
+        // Normalize by sentence length
+        return score / tokens.length;
       });
     }
 
-    function topNSentences(sentences, scores, n){
-      const idx = sentences.map((_,i)=>i).sort((a,b)=>scores[b]-scores[a]);
-      return idx.slice(0,n).sort((a,b)=>a-b).map(i=>sentences[i].trim());
+    function calculatePositionScore(index, total) {
+      // Give higher scores to sentences at the beginning and end
+      if (index === 0) return 1.5; // First sentence is often important
+      if (index < 3) return 1.2; // Early sentences
+      if (index >= total - 2) return 1.1; // Last sentences
+      return 1.0;
     }
 
-    function extractSummary(text, length){
-      const sentences = splitSentences(text);
-      if(sentences.length === 0) return {summary:'', keywords:[]};
-      const scores = scoreSentences(sentences);
-      const n = Math.min(length, sentences.length);
-      const picked = topNSentences(sentences, scores, n);
+    function calculateSentenceSimilarity(sent1, sent2) {
+      const tokens1 = new Set(tokenize(sent1));
+      const tokens2 = new Set(tokenize(sent2));
 
+      if (tokens1.size === 0 || tokens2.size === 0) return 0;
+
+      const intersection = new Set([...tokens1].filter(x => tokens2.has(x)));
+      return intersection.size / Math.sqrt(tokens1.size * tokens2.size);
+    }
+
+    function selectDiverseSentences(sentences, scores, n) {
+      if (sentences.length <= n) {
+        return sentences.map((s, i) => ({ text: s, index: i }));
+      }
+
+      // Start with the highest scoring sentence
+      const selected = [];
+      const available = sentences.map((sent, idx) => ({
+        text: sent,
+        index: idx,
+        score: scores[idx]
+      }));
+
+      // Sort by score
+      available.sort((a, b) => b.score - a.score);
+
+      // Pick the first one
+      selected.push(available[0]);
+      available.splice(0, 1);
+
+      // For remaining sentences, balance score with diversity
+      while (selected.length < n && available.length > 0) {
+        let bestIdx = 0;
+        let bestScore = -Infinity;
+
+        available.forEach((candidate, idx) => {
+          // Calculate average similarity to already selected sentences
+          let avgSimilarity = 0;
+          selected.forEach(sel => {
+            avgSimilarity += calculateSentenceSimilarity(candidate.text, sel.text);
+          });
+          avgSimilarity /= selected.length;
+
+          // Combined score: original score minus similarity penalty
+          const combinedScore = candidate.score - (avgSimilarity * 2);
+
+          if (combinedScore > bestScore) {
+            bestScore = combinedScore;
+            bestIdx = idx;
+          }
+        });
+
+        selected.push(available[bestIdx]);
+        available.splice(bestIdx, 1);
+      }
+
+      // Sort by original position to maintain flow
+      return selected.sort((a, b) => a.index - b.index);
+    }
+
+    function extractKeywords(text, topN = 6) {
       const tokens = tokenize(text);
       const freq = {};
-      tokens.forEach(t=> freq[t] = (freq[t]||0)+1);
-      const keywords = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>x[0]);
 
-      return {summary: picked.join(' '), keywords};
+      tokens.forEach(token => {
+        freq[token] = (freq[token] || 0) + 1;
+      });
+
+      // Sort by frequency and take top N
+      return Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, topN)
+        .map(x => x[0]);
     }
 
-    async function callLLMProxy(text, lengthLabel){
-      try{
+    function extractSummary(text, length) {
+      const sentences = splitSentences(text);
+
+      if (sentences.length === 0) {
+        return { summary: '', keywords: [] };
+      }
+
+      // Calculate TF-IDF scores
+      const tfidfScores = calculateTFIDF(sentences);
+
+      // Apply position weighting and keyword-aware boost
+      const docKeywords = extractKeywords(text, 6);
+      const keywordSet = new Set(docKeywords);
+      const finalScores = tfidfScores.map((score, idx) => {
+        const posWeight = calculatePositionScore(idx, sentences.length);
+        const sentTokens = tokenize(sentences[idx]);
+        let keywordHits = 0;
+        sentTokens.forEach(t => { if (keywordSet.has(t)) keywordHits += 1; });
+        const keywordBoost = 0.2 * keywordHits; // light boost per keyword hit
+        return (score * posWeight) + keywordBoost;
+      });
+
+      // Determine target number of sentences to avoid echoing the full input
+      let target = length;
+      if (sentences.length <= length) {
+        // Compress to about 60% of available sentences, at least 1
+        target = Math.max(1, Math.floor(sentences.length * 0.6));
+        // Ensure we don't accidentally select all when very small
+        if (target >= sentences.length && sentences.length > 1) {
+          target = sentences.length - 1;
+        }
+      }
+
+      const selected = selectDiverseSentences(sentences, finalScores, target);
+      const summary = selected.map(s => s.text).join(' ');
+
+      return {
+        summary,
+        keywords: docKeywords
+      };
+    }
+
+    async function callLLMProxy(text, lengthLabel) {
+      try {
         const res = await fetch('/api/summarize', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({text, length:lengthLabel})
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, length: lengthLabel })
         });
         return await res.json();
-      }catch(err){
-        return {error: err.message};
+      } catch (err) {
+        return { error: err.message };
       }
     }
 
-    summarizeBtn.addEventListener('click', async ()=>{
+    summarizeBtn.addEventListener('click', async () => {
       const text = inputEl.value.trim();
-      if(!text){ summaryEl.textContent = 'Paste text first.'; return; }
+      if (!text) {
+        summaryEl.textContent = '⚠️ Please paste some text first.';
+        return;
+      }
 
       const label = lengthSelect.value;
       let n = label === 'short' ? 3 : label === 'medium' ? 5 : 8;
 
-      if(methodSelect.value === 'extractive'){
-        const {summary, keywords} = extractSummary(text, n);
-        summaryEl.textContent = summary || 'No summary.';
-        keywordsEl.textContent = keywords.join(', ');
-      } else {
-        summaryEl.textContent = 'Calling LLM...';
-        const out = await callLLMProxy(text, label);
-        if(out.error){ summaryEl.textContent = 'Error: ' + out.error; keywordsEl.textContent=''; }
-        else{ summaryEl.textContent = out.summary; keywordsEl.textContent=(out.keywords||[]).join(', '); }
+      // Disable button and show loading
+      summarizeBtn.disabled = true;
+      const btnTextEl = document.getElementById('btnText');
+      const originalText = btnTextEl.textContent;
+      btnTextEl.innerHTML = '<span class="loading"></span> Processing...';
+
+      try {
+        if (methodSelect.value === 'extractive') {
+          const { summary, keywords } = extractSummary(text, n);
+          summaryEl.textContent = summary || 'No summary generated.';
+          renderKeywords(keywords);
+        } else {
+          summaryEl.textContent = '🤖 Calling LLM...';
+          const out = await callLLMProxy(text, label);
+          if (out.error || !out.summary) {
+            // Fallback to extractive if LLM fails or returns invalid data
+            const { summary, keywords } = extractSummary(text, n);
+            summaryEl.textContent = summary || 'No summary generated.';
+            renderKeywords(keywords);
+          } else {
+            summaryEl.textContent = out.summary;
+            renderKeywords(out.keywords || []);
+          }
+        }
+      } finally {
+        // Re-enable button
+        summarizeBtn.disabled = false;
+        btnTextEl.textContent = originalText;
       }
     });
 
-    inputEl.addEventListener('input', ()=>{
+    inputEl.addEventListener('input', () => {
       sentCountEl.textContent = splitSentences(inputEl.value).length;
     });
 
-    copyBtn.addEventListener('click', ()=>{
-      navigator.clipboard.writeText(summaryEl.textContent);
-      copyBtn.textContent = 'Copied!';
-      setTimeout(()=>copyBtn.textContent='Copy',1200);
+    function renderKeywords(keywords) {
+      if (!keywords || keywords.length === 0) {
+        keywordsEl.innerHTML = '<span style="color: var(--text-muted); font-size: 12px;">No keywords extracted</span>';
+        return;
+      }
+      keywordsEl.innerHTML = keywords.map(kw =>
+        `<span class="keyword-tag">${kw}</span>`
+      ).join('');
+    }
+
+    copyBtn.addEventListener('click', async () => {
+      const text = summaryEl.textContent;
+      if (!text || text === 'Your summary will appear here...') {
+        return;
+      }
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          copied = document.execCommand('copy');
+        } finally {
+          document.body.removeChild(ta);
+        }
+      }
+      if (copied) {
+        copyBtn.innerHTML = '✓ Copied!';
+        setTimeout(() => copyBtn.innerHTML = '📋 Copy', 1500);
+      }
     });
 
-    clearBtn.addEventListener('click', ()=>{
-      inputEl.value='';
-      summaryEl.textContent='Your summary will appear here.';
-      keywordsEl.textContent='';
-      sentCountEl.textContent=0;
+    const pasteBtn = document.getElementById('paste');
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        const clip = await navigator.clipboard.readText();
+        if (clip) {
+          inputEl.value = clip;
+          sentCountEl.textContent = splitSentences(inputEl.value).length;
+        }
+      } catch (e) {
+        summaryEl.textContent = '⚠️ Clipboard access denied. Use Cmd/Ctrl+V to paste.';
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      inputEl.value = '';
+      summaryEl.textContent = '';
+      keywordsEl.innerHTML = '';
+      sentCountEl.textContent = '0';
     });
   </script>
 </body>
+
 </html>
